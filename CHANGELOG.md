@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.18
+
+- 修复主页悬停下载失败时跳转到 `/originals/` AccessDenied 链接的问题。
+- 悬停卡片改为逐个尝试候选 URL，失败时回退到页面实际可见图，不再打开失败的原图 URL。
+- 移除旧的失败后打开原图链接逻辑，避免后续回归到 AccessDenied 页面。
+
 ## 0.8.17
 
 - 增加现成脚本同款 `script[data-test-id='video-snippet']` 解析，读取 JSON-LD `contentUrl` 作为视频兜底来源。
