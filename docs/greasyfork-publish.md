@@ -15,8 +15,10 @@ node --check ".\pinterest++.user.js"
 ```js
 // @name         Pinterest++
 // @namespace    https://github.com/zker67/pinterest-plus-plus
-// @description  为 Pinterest 增加原图下载与保存状态按钮 / Add compact buttons for original image download and save state.
-// @version      0.8.11
+// @description  Add compact buttons for original image download and save state.
+// @description:zh-CN 为 Pinterest 增加原图下载与保存状态按钮。
+// @description:en Add compact buttons for original image download and save state.
+// @version      0.8.12
 // @downloadURL  https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
 // @updateURL    https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
 ```
@@ -30,13 +32,20 @@ node --check ".\pinterest++.user.js"
 3. 选择“输入代码”。
 4. 粘贴 `pinterest++.user.js` 的完整内容。
 5. 标题使用 `Pinterest++`。
-6. 描述建议使用：
+6. 描述会从脚本头读取：
 
 ```text
 为 Pinterest 图片卡片和 Pin 详情页增加精致的原图下载按钮，并按官方保存状态显示星标。
 ```
 
-7. 许可证选择 `MIT`。
+中文页面会使用 `@description:zh-CN`，英文页面会使用 `@description:en`。
+
+7. 附加信息可以按语言分别填写：
+
+- 中文附加信息：复制 [greasyfork-additional-info.zh-CN.md](greasyfork-additional-info.zh-CN.md)
+- 英文附加信息：复制 [greasyfork-additional-info.en.md](greasyfork-additional-info.en.md)
+
+8. 许可证选择 `MIT`。
 
 仓库已包含 MIT `LICENSE`，脚本头也包含 `// @license      MIT`。
 

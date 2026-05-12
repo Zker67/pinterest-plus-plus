@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.12
+
+- 使用 `@description:zh-CN` 和 `@description:en` 分别提供中文和英文脚本描述。
+- 增加 Greasy Fork 中英文附加信息模板。
+
 ## 0.8.11
 
 - 增加视频 Pin 兼容，优先从 `videos.video_list` 选择可直接下载的 MP4。
