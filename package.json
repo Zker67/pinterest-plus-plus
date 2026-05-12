@@ -1,0 +1,15 @@
+{
+  "name": "pinterest-plus-plus",
+  "private": true,
+  "version": "0.8.9",
+  "description": "Pinterest userscript for original image downloads and compact save buttons.",
+  "scripts": {
+    "check": "node --check \"pinterest++.user.js\""
+  },
+  "keywords": [
+    "pinterest",
+    "userscript",
+    "tampermonkey",
+    "download"
+  ]
+}

@@ -1,0 +1,67 @@
+# Greasy Fork 发布指南
+
+目标：把 `pinterest++.user.js` 发布到你自己的 Greasy Fork 账号下。
+
+## 发布前检查
+
+1. 确认脚本文件语法通过：
+
+```powershell
+node --check ".\pinterest++.user.js"
+```
+
+2. 确认脚本头部至少包含：
+
+```js
+// @name         Pinterest++
+// @namespace    https://github.com/zker67/pinterest++
+// @version      0.8.09
+// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest++/main/pinterest++.user.js
+// @updateURL    https://raw.githubusercontent.com/zker67/pinterest++/main/pinterest++.user.js
+```
+
+3. 如果你在 GitHub 改了版本号，Greasy Fork 也需要同步更新脚本内容。
+
+## 新建脚本
+
+1. 登录 Greasy Fork。
+2. 打开“发布你编写的脚本”。
+3. 选择“输入代码”。
+4. 粘贴 `pinterest++.user.js` 的完整内容。
+5. 标题使用 `Pinterest++`。
+6. 描述建议使用：
+
+```text
+为 Pinterest 图片卡片和 Pin 详情页增加精致的原图下载按钮，并按官方保存状态显示星标。
+```
+
+7. 许可证建议暂时选择 `N/A` 或不声明开源许可证。
+
+原因：原始 Pinterest Plus 脚本的 Greasy Fork 页面显示 License 为 `N/A`。如果之后获得上游授权，再补充正式开源许可证。
+
+## 推荐标签
+
+```text
+pinterest
+download
+image
+userscript
+tampermonkey
+```
+
+## 更新发布
+
+每次更新建议按这个顺序：
+
+1. 修改 `pinterest++.user.js`。
+2. 提升 `@version`。
+3. 更新 `CHANGELOG.md`。
+4. 执行语法检查。
+5. 提交并推送 GitHub。
+6. 在 Greasy Fork 编辑脚本，粘贴新版本代码。
+
+## 注意
+
+- Greasy Fork 对重复脚本、派生脚本和授权说明比较敏感。发布说明里建议明确写明基于 TiLied 的 Pinterest Plus 改造。
+- 不要把 `@downloadURL` 指向 Greasy Fork 自动生成的旧脚本地址；本仓库版本使用 GitHub raw 地址作为源。
+- 如果 Greasy Fork 对 `pinterest++` 的 raw 地址解析有问题，可以把仓库或文件名改成 `pinterest-plus-plus`，但当前先按仓库名 `pinterest++` 准备。
