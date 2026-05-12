@@ -36,9 +36,9 @@ node --check ".\pinterest++.user.js"
 为 Pinterest 图片卡片和 Pin 详情页增加精致的原图下载按钮，并按官方保存状态显示星标。
 ```
 
-7. 许可证建议暂时选择 `N/A` 或不声明开源许可证。
+7. 许可证选择 `MIT`。
 
-原因：原始 Pinterest Plus 脚本的 Greasy Fork 页面显示 License 为 `N/A`。如果之后获得上游授权，再补充正式开源许可证。
+仓库已包含 MIT `LICENSE`，脚本头也包含 `// @license      MIT`。
 
 ## 推荐标签
 

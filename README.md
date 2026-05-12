@@ -61,6 +61,6 @@ https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.us
 node --check ".\pinterest++.user.js"
 ```
 
-## 来源与授权边界
+## 来源与许可证
 
-本项目基于 TiLied 的 Pinterest Plus 脚本改造。原 Greasy Fork 页面显示 License 为 `N/A`，因此本仓库暂不声明 MIT/GPL 等开源许可证。详见 [NOTICE.md](NOTICE.md)。
+本项目基于 TiLied 的 Pinterest Plus 脚本改造，并保留上游来源说明。当前仓库使用 MIT License 发布，详见 [LICENSE](LICENSE) 与 [NOTICE.md](NOTICE.md)。

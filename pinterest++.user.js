@@ -25,6 +25,7 @@
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
 // @version      0.8.10
+// @license      MIT
 // @grant        GM_download
 // @grant        GM.download
 // @grant        GM_xmlhttpRequest
