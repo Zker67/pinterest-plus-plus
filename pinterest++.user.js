@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.15
+// @version      0.8.16
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -44,7 +44,7 @@
 class PinterestPlus {
 	_Observer = null;
 	_PinCache = new Map();
-	_MediaSelector = "img[src*='pinimg.com'], img[srcset*='pinimg.com'], video[src*='pinimg.com'], video source[src*='pinimg.com']";
+	_MediaSelector = "img, video, video source, [style*='pinimg.com']";
 
 	constructor() {
 		console.log("Pinterest Plus v" + GM.info.script.version + " initialization");
@@ -183,6 +183,8 @@ class PinterestPlus {
 		const quickSaveButtons = [
 			...(root.matches?.("div[data-test-id='quick-save-button']") ? [root] : []),
 			...(root.querySelectorAll?.("div[data-test-id='quick-save-button']") || []),
+			...(root.matches?.("[data-test-id='pinWrapper'] button[aria-label='保存'], [data-test-id='pinWrapper'] button[aria-label='已收藏']") ? [root.closest("[data-test-id='pinWrapper']")] : []),
+			...(root.querySelectorAll?.("[data-test-id='pinWrapper'] button[aria-label='保存'], [data-test-id='pinWrapper'] button[aria-label='已收藏']") || []),
 		];
 
 		if (quickSaveButtons.length === 0) {
@@ -190,25 +192,26 @@ class PinterestPlus {
 		}
 
 		for (const quickSave of quickSaveButtons) {
-			const host = quickSave.closest("div[data-test-id='pointer-events-wrapper']") || quickSave.parentElement;
+			const saveHost = quickSave.matches?.("button") ? quickSave.parentElement : quickSave;
+			const host = saveHost?.closest("div[data-test-id='pointer-events-wrapper']") || saveHost?.parentElement;
 
 			if (host == null) {
 				continue;
 			}
 
-			const card = this._FindPinCard(quickSave);
+			const card = this._FindPinCard(saveHost);
 
-			if (card == null || card.querySelector(this._MediaSelector) == null) {
+			if (card == null) {
 				continue;
 			}
 
 			if (card.querySelector(":scope > .ppCompactActionBar") != null) {
-				quickSave.classList.add("ppNativeSaveHidden");
+				saveHost.classList.add("ppNativeSaveHidden");
 				continue;
 			}
 
 			card.classList.add("ppCardOverlayHost");
-			quickSave.classList.add("ppNativeSaveHidden");
+			saveHost.classList.add("ppNativeSaveHidden");
 
 			const actionBar = document.createElement("div");
 			actionBar.className = "ppCompactActionBar";
@@ -233,15 +236,15 @@ class PinterestPlus {
 			saveButton.addEventListener("mouseup", stop, true);
 			saveButton.addEventListener("click", (e) => {
 				stop(e);
-				this._ClickNativeSave(quickSave, saveButton);
+				this._ClickNativeSave(saveHost, saveButton);
 			}, true);
 
-			this._SyncSaveState(quickSave, saveButton);
+			this._SyncSaveState(saveHost, saveButton);
 
 			const saveObserver = new MutationObserver(() => {
-				this._SyncSaveState(quickSave, saveButton);
+				this._SyncSaveState(saveHost, saveButton);
 			});
-			saveObserver.observe(quickSave, {
+			saveObserver.observe(saveHost, {
 				attributes: true,
 				childList: true,
 				subtree: true,
@@ -328,10 +331,7 @@ class PinterestPlus {
 		let current = node.parentElement;
 
 		for (let i = 0; i < 12 && current != null; i++) {
-			if (
-				current.querySelector("a[href*='/pin/']") != null &&
-				current.querySelector(this._MediaSelector) != null
-			) {
+			if (current.querySelector("a[href*='/pin/']") != null) {
 				return current;
 			}
 
@@ -560,8 +560,6 @@ class PinterestPlus {
 			video.currentSrc,
 			video.src,
 			video.getAttribute?.("src"),
-			video.poster,
-			video.getAttribute?.("poster"),
 			...sourceUrls,
 		].filter(Boolean));
 	}
@@ -646,6 +644,7 @@ class PinterestPlus {
 
 	_ExtractPinUrls(pin) {
 		const urls = [
+			...this._ExtractRecursiveVideoUrls(pin),
 			...this._ExtractVideoUrls(pin?.videos),
 			...this._ExtractVideoUrls(pin?.video),
 			...this._ExtractVideoUrls(pin?.image?.video),
@@ -667,6 +666,50 @@ class PinterestPlus {
 		return this._UniqueUrls(urls.filter(Boolean));
 	}
 
+	_ExtractRecursiveVideoUrls(value, seen = new WeakSet()) {
+		if (value == null) {
+			return [];
+		}
+
+		if (typeof value === "string") {
+			return this._IsDownloadableVideoUrl(value) ? [value] : [];
+		}
+
+		if (typeof value !== "object") {
+			return [];
+		}
+
+		if (seen.has(value)) {
+			return [];
+		}
+
+		seen.add(value);
+
+		const urls = [];
+		urls.push(...this._ExtractVideoUrls(value));
+
+		for (const [key, child] of Object.entries(value)) {
+			if (key === "video_list" || key === "videoList") {
+				urls.push(...this._ExtractVideoUrls({ video_list: child }));
+				continue;
+			}
+
+			if (typeof child === "string") {
+				if (this._IsDownloadableVideoUrl(child)) {
+					urls.push(child);
+				}
+				continue;
+			}
+
+			urls.push(...this._ExtractRecursiveVideoUrls(child, seen));
+		}
+
+		const mp4Urls = urls.filter((url) => !/\.m3u8(\?|$)/i.test(url) && !/\/hls\//i.test(url));
+		const hlsUrls = urls.filter((url) => /\.m3u8(\?|$)/i.test(url) || /\/hls\//i.test(url));
+
+		return this._UniqueUrls([...mp4Urls, ...hlsUrls]);
+	}
+
 	_ExtractVideoUrls(video) {
 		if (video == null) {
 			return [];
@@ -678,7 +721,7 @@ class PinterestPlus {
 			video.videoUrl,
 			video.original_url,
 			video.originalUrl,
-		].filter(Boolean);
+		].filter((url) => this._IsDownloadableVideoUrl(url));
 		const isHlsUrl = (url) => /\.m3u8(\?|$)/i.test(url) || /\/hls\//i.test(url);
 
 		const formats = video.video_list || video.videoList;
@@ -929,11 +972,15 @@ class PinterestPlus {
 	}
 
 	_LooksLikeVideoUrl(url) {
+		return this._IsDownloadableVideoUrl(url);
+	}
+
+	_IsDownloadableVideoUrl(url) {
 		if (url == null) {
 			return false;
 		}
 
-		return /\.(mp4|m4v|webm|mov|m3u8)(\?|$)/i.test(url) || /\/videos?\//i.test(url);
+		return /\.(mp4|m4v|webm|mov|m3u8)(\?|$)/i.test(url) || /\/hls\//i.test(url);
 	}
 
 }

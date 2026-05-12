@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.16
+
+- 修复视频 Pin 悬停按钮不出现的问题，卡片识别不再依赖 pinimg 媒体元素。
+- 递归扫描 PinResource JSON 中的视频 URL，优先下载 MP4，HLS 作为兜底。
+- 视频候选不再把 poster 封面帧当作视频下载目标。
+
 ## 0.8.15
 
 - 将默认 `@description` 改为中文，同时保留 `@description:zh-CN` 与 `@description:en`。
