@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.15
+
+- 将默认 `@description` 改为中文，同时保留 `@description:zh-CN` 与 `@description:en`。
+
+## 0.8.14
+
+- 移除默认 `@description`，仅保留中英文定向描述。
+
 ## 0.8.13
 
 - 补充 `@name:en` 和 `@name:zh-CN`，满足 Greasy Fork 多语言附加信息校验。
