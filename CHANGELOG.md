@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.19
+
+- 修复主页悬停按钮注入时可能把整张 Pin 卡片误隐藏的问题。
+- 保存按钮定位改为只隐藏 Pinterest 官方保存按钮容器，不再误处理外层 `pinWrapper`。
+
 ## 0.8.18
 
 - 修复主页悬停下载失败时跳转到 `/originals/` AccessDenied 链接的问题。

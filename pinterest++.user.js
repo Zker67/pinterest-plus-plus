@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.18
+// @version      0.8.19
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -180,19 +180,22 @@ class PinterestPlus {
 	}
 
 	_InjectDownloadButtons(root) {
-		const quickSaveButtons = [
+		const nativeSaveNodes = [
 			...(root.matches?.("div[data-test-id='quick-save-button']") ? [root] : []),
 			...(root.querySelectorAll?.("div[data-test-id='quick-save-button']") || []),
-			...(root.matches?.("[data-test-id='pinWrapper'] button[aria-label='保存'], [data-test-id='pinWrapper'] button[aria-label='已收藏']") ? [root.closest("[data-test-id='pinWrapper']")] : []),
+			...(root.matches?.("[data-test-id='pinWrapper'] button[aria-label='保存'], [data-test-id='pinWrapper'] button[aria-label='已收藏']") ? [root] : []),
 			...(root.querySelectorAll?.("[data-test-id='pinWrapper'] button[aria-label='保存'], [data-test-id='pinWrapper'] button[aria-label='已收藏']") || []),
 		];
+		const quickSaveButtons = [...new Set(nativeSaveNodes
+			.map((node) => this._GetNativeSaveHost(node))
+			.filter(Boolean))];
 
 		if (quickSaveButtons.length === 0) {
 			return;
 		}
 
 		for (const quickSave of quickSaveButtons) {
-			const saveHost = quickSave.matches?.("button") ? quickSave.parentElement : quickSave;
+			const saveHost = quickSave;
 			const host = saveHost?.closest("div[data-test-id='pointer-events-wrapper']") || saveHost?.parentElement;
 
 			if (host == null) {
@@ -254,6 +257,21 @@ class PinterestPlus {
 			actionBar.appendChild(saveButton);
 			card.appendChild(actionBar);
 		}
+	}
+
+	_GetNativeSaveHost(node) {
+		if (node == null) {
+			return null;
+		}
+
+		const pinWrapper = node.closest?.("[data-test-id='pinWrapper']");
+		const saveHost = node.matches?.("div[data-test-id='quick-save-button']")
+			? node
+			: node.closest?.("div[data-test-id='quick-save-button']")
+				|| node.closest?.("div[data-test-id='pointer-events-wrapper']")
+				|| node.parentElement;
+
+		return saveHost === pinWrapper || saveHost?.contains?.(pinWrapper) ? null : saveHost;
 	}
 
 	_InjectDetailDownloadButtons(root) {
