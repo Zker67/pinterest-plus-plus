@@ -15,7 +15,8 @@ node --check ".\pinterest++.user.js"
 ```js
 // @name         Pinterest++
 // @namespace    https://github.com/zker67/pinterest-plus-plus
-// @version      0.8.09
+// @description  为 Pinterest 增加原图下载与保存状态按钮 / Add compact buttons for original image download and save state.
+// @version      0.8.10
 // @downloadURL  https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
 // @updateURL    https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
 ```

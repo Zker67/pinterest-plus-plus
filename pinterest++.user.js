@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Pinterest++
 // @namespace    https://github.com/zker67/pinterest-plus-plus
-// @description  Add compact Pinterest-style buttons for original image download and save state.
+// @description  为 Pinterest 增加原图下载与保存状态按钮 / Add compact buttons for original image download and save state.
 // @match        https://*.pinterest.com/*
 // @match        https://*.pinterest.at/*
 // @match        https://*.pinterest.ca/*
@@ -24,7 +24,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.09
+// @version      0.8.10
 // @grant        GM_download
 // @grant        GM.download
 // @grant        GM_xmlhttpRequest
