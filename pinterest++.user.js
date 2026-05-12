@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.20
+// @version      0.8.21
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -348,11 +348,11 @@ class PinterestPlus {
 
 			const result = await this._ResolveCardOriginal(card);
 
-			if (result.urls.length === 0) {
+			if (result.url == null) {
 				throw new Error("Cannot resolve original image url.");
 			}
 
-			await this._DownloadFirstAvailable(result.urls, result.filename);
+			await this._DownloadUrlWithOpenFallback(result.url, result.filename);
 			button.classList.add("ppDone");
 			setTimeout(() => {
 				button.classList.remove("ppDone");
@@ -803,6 +803,26 @@ class PinterestPlus {
 		throw errors[0] || new Error("All download candidates failed.");
 	}
 
+	async _DownloadUrlWithOpenFallback(url, filename) {
+		try {
+			await this._DownloadWithGMDownload(url, filename);
+			return;
+		}
+		catch (error) {
+			console.warn("GM_download failed or timed out, trying blob fallback:", error);
+		}
+
+		try {
+			await this._DownloadWithGMRequest(url, filename);
+			return;
+		}
+		catch (error) {
+			console.warn("GM_xmlhttpRequest fallback failed, opening original:", error);
+		}
+
+		this._OpenOriginal(url);
+	}
+
 	async _DownloadUrlNoOpenFallback(url, filename) {
 		try {
 			await this._DownloadWithGMDownload(url, filename);
@@ -934,6 +954,10 @@ class PinterestPlus {
 		document.body.appendChild(a);
 		a.click();
 		a.remove();
+	}
+
+	_OpenOriginal(url) {
+		window.open(url, "_blank", "noopener");
 	}
 
 	_UniqueUrls(urls) {
