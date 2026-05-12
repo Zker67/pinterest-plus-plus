@@ -48,6 +48,8 @@ https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.us
 5. `GM_download` 失败或超时时，使用 `GM_xmlhttpRequest` 拉取 blob 后触发浏览器下载。
 6. 详情页仍失败时，回退到当前实际显示图。
 
+参考脚本的资源解析思路和本项目采用边界见 [docs/reference-analysis.md](docs/reference-analysis.md)。
+
 ## 权限
 
 - `GM_download` / `GM.download`：触发用户脚本管理器下载。
