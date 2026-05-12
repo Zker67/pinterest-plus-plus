@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.21
+// @version      0.8.22
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -180,6 +180,10 @@ class PinterestPlus {
 	}
 
 	_InjectDownloadButtons(root) {
+		const cards = new Set([
+			...(root.matches?.("[data-test-id='pinWrapper'], [data-test-id='pin'], [data-test-id='pinrep']") ? [root] : []),
+			...(root.querySelectorAll?.("[data-test-id='pinWrapper'], [data-test-id='pin'], [data-test-id='pinrep']") || []),
+		]);
 		const quickSaveButtons = [
 			...(root.matches?.("div[data-test-id='quick-save-button']") ? [root] : []),
 			...(root.querySelectorAll?.("div[data-test-id='quick-save-button']") || []),
@@ -187,31 +191,40 @@ class PinterestPlus {
 			...(root.querySelectorAll?.("[data-test-id='pinWrapper'] button[aria-label='保存'], [data-test-id='pinWrapper'] button[aria-label='已收藏']") || []),
 		];
 
-		if (quickSaveButtons.length === 0) {
+		for (const quickSave of quickSaveButtons) {
+			const saveHost = quickSave.matches?.("button") ? quickSave.parentElement : quickSave;
+			const card = this._FindPinCard(saveHost);
+
+			if (card != null) {
+				cards.add(card);
+			}
+		}
+
+		if (cards.size === 0) {
 			return;
 		}
 
-		for (const quickSave of quickSaveButtons) {
-			const saveHost = quickSave.matches?.("button") ? quickSave.parentElement : quickSave;
-			const host = saveHost?.closest("div[data-test-id='pointer-events-wrapper']") || saveHost?.parentElement;
-
-			if (host == null) {
-				continue;
-			}
-
-			const card = this._FindPinCard(saveHost);
-
-			if (card == null) {
-				continue;
-			}
-
-			if (card.querySelector(":scope > .ppCompactActionBar") != null) {
-				saveHost.classList.add("ppNativeSaveHidden");
+		for (const card of cards) {
+			if (!this._IsDownloadableCard(card)) {
 				continue;
 			}
 
 			card.classList.add("ppCardOverlayHost");
-			saveHost.classList.add("ppNativeSaveHidden");
+
+			const existingActionBar = card.querySelector(":scope > .ppCompactActionBar");
+			const existingSaveButton = existingActionBar?.querySelector(".ppSaveButton");
+			const saveHost = this._FindNativeSaveHost(card);
+
+			if (saveHost != null) {
+				saveHost.classList.add("ppNativeSaveHidden");
+			}
+
+			if (existingActionBar != null) {
+				if (existingSaveButton != null) {
+					this._SyncSaveState(saveHost, existingSaveButton);
+				}
+				continue;
+			}
 
 			const actionBar = document.createElement("div");
 			actionBar.className = "ppCompactActionBar";
@@ -236,24 +249,42 @@ class PinterestPlus {
 			saveButton.addEventListener("mouseup", stop, true);
 			saveButton.addEventListener("click", (e) => {
 				stop(e);
-				this._ClickNativeSave(saveHost, saveButton);
+				this._ClickNativeSave(this._FindNativeSaveHost(card), saveButton);
 			}, true);
 
 			this._SyncSaveState(saveHost, saveButton);
-
-			const saveObserver = new MutationObserver(() => {
-				this._SyncSaveState(saveHost, saveButton);
-			});
-			saveObserver.observe(saveHost, {
-				attributes: true,
-				childList: true,
-				subtree: true,
-			});
 
 			actionBar.appendChild(downloadButton);
 			actionBar.appendChild(saveButton);
 			card.appendChild(actionBar);
 		}
+	}
+
+	_IsDownloadableCard(card) {
+		return card.querySelector("a[href*='/pin/']") != null
+			&& card.querySelector(this._MediaSelector) != null;
+	}
+
+	_FindNativeSaveHost(card) {
+		const button = [
+			...card.querySelectorAll(
+				"div[data-test-id='quick-save-button'] button," +
+				"button[aria-label='保存']," +
+				"button[aria-label='已收藏']," +
+				"button[aria-label='Save']," +
+				"button[aria-label='Saved']"
+			),
+		].find((item) => item.closest(".ppCompactActionBar") == null);
+
+		if (button == null) {
+			return null;
+		}
+
+		const saveHost = button.closest("div[data-test-id='quick-save-button']")
+			|| button.closest("div[data-test-id='pointer-events-wrapper']")
+			|| button.parentElement;
+
+		return saveHost === card || saveHost?.contains?.(card) ? null : saveHost;
 	}
 
 	_InjectDetailDownloadButtons(root) {
@@ -391,6 +422,10 @@ class PinterestPlus {
 	}
 
 	_ClickNativeSave(quickSave, saveButton) {
+		if (quickSave == null) {
+			return;
+		}
+
 		const nativeButton = quickSave.querySelector("button");
 
 		if (nativeButton == null) {
@@ -404,6 +439,13 @@ class PinterestPlus {
 	}
 
 	_SyncSaveState(quickSave, saveButton) {
+		if (quickSave == null) {
+			saveButton.classList.remove("ppSaved");
+			saveButton.setAttribute("aria-label", "保存");
+			saveButton.title = "保存";
+			return;
+		}
+
 		const saved = this._IsNativeSaved(quickSave);
 		saveButton.classList.toggle("ppSaved", saved);
 		saveButton.setAttribute("aria-label", saved ? "已收藏" : "保存");
