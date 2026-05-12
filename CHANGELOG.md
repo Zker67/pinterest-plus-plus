@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.11
+
+- 增加视频 Pin 兼容，优先从 `videos.video_list` 选择可直接下载的 MP4。
+- 悬停卡片识别从图片扩展到 `video` / `source` 媒体元素。
+- 故事 Pin 的视频 block 也会参与下载候选解析。
+
 ## 0.8.10
 
 - 将脚本描述改为中英双语，便于 Greasy Fork 中文和英文用户理解。
