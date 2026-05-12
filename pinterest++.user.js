@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.16
+// @version      0.8.17
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -433,6 +433,8 @@ class PinterestPlus {
 			urls.push(...(pin == null ? [] : this._ExtractPinUrls(pin)));
 		}
 
+		urls.push(...this._GetVideoSnippetUrls(card));
+
 		if (img != null) {
 			urls.push(...this._GetImageUrlCandidates(img));
 		}
@@ -469,6 +471,8 @@ class PinterestPlus {
 			const pin = await this._FetchPinData(pinId);
 			urls.push(...(pin == null ? [] : this._ExtractPinUrls(pin)));
 		}
+
+		urls.push(...this._GetVideoSnippetUrls(document));
 
 		const img = document.querySelector(
 			"div[data-test-id='CloseupMainPin'] img[srcset*='pinimg.com']," +
@@ -562,6 +566,27 @@ class PinterestPlus {
 			video.getAttribute?.("src"),
 			...sourceUrls,
 		].filter(Boolean));
+	}
+
+	_GetVideoSnippetUrls(root) {
+		const snippets = [
+			...(root.matches?.("script[data-test-id='video-snippet']") ? [root] : []),
+			...(root.querySelectorAll?.("script[data-test-id='video-snippet']") || []),
+		];
+		const urls = [];
+
+		for (const snippet of snippets) {
+			try {
+				const data = JSON.parse(snippet.textContent || "{}");
+				const contentUrls = Array.isArray(data.contentUrl) ? data.contentUrl : [data.contentUrl];
+				urls.push(...contentUrls.filter((url) => this._IsDownloadableVideoUrl(url)));
+			}
+			catch (error) {
+				console.warn("Cannot parse Pinterest video snippet:", error);
+			}
+		}
+
+		return this._UniqueUrls(urls);
 	}
 
 	_ToOriginalPinimgUrl(url) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.17
+
+- 增加现成脚本同款 `script[data-test-id='video-snippet']` 解析，读取 JSON-LD `contentUrl` 作为视频兜底来源。
+
 ## 0.8.16
 
 - 修复视频 Pin 悬停按钮不出现的问题，卡片识别不再依赖 pinimg 媒体元素。
