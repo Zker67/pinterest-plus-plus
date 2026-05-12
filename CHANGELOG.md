@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.13
+
+- 补充 `@name:en` 和 `@name:zh-CN`，满足 Greasy Fork 多语言附加信息校验。
+
 ## 0.8.12
 
 - 使用 `@description:zh-CN` 和 `@description:en` 分别提供中文和英文脚本描述。
