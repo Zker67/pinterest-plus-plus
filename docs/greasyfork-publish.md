@@ -14,10 +14,10 @@ node --check ".\pinterest++.user.js"
 
 ```js
 // @name         Pinterest++
-// @namespace    https://github.com/zker67/pinterest++
+// @namespace    https://github.com/zker67/pinterest-plus-plus
 // @version      0.8.09
-// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest++/main/pinterest++.user.js
-// @updateURL    https://raw.githubusercontent.com/zker67/pinterest++/main/pinterest++.user.js
+// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
+// @updateURL    https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
 ```
 
 3. 如果你在 GitHub 改了版本号，Greasy Fork 也需要同步更新脚本内容。
@@ -64,4 +64,4 @@ tampermonkey
 
 - Greasy Fork 对重复脚本、派生脚本和授权说明比较敏感。发布说明里建议明确写明基于 TiLied 的 Pinterest Plus 改造。
 - 不要把 `@downloadURL` 指向 Greasy Fork 自动生成的旧脚本地址；本仓库版本使用 GitHub raw 地址作为源。
-- 如果 Greasy Fork 对 `pinterest++` 的 raw 地址解析有问题，可以把仓库或文件名改成 `pinterest-plus-plus`，但当前先按仓库名 `pinterest++` 准备。
+- GitHub 不接受 `+` 作为仓库名字符，仓库使用 `pinterest-plus-plus`，脚本显示名仍为 `Pinterest++`。

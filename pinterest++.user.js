@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Pinterest++
-// @namespace    https://github.com/zker67/pinterest++
+// @namespace    https://github.com/zker67/pinterest-plus-plus
 // @description  Add compact Pinterest-style buttons for original image download and save state.
 // @match        https://*.pinterest.com/*
 // @match        https://*.pinterest.at/*
@@ -32,8 +32,8 @@
 // @connect      i.pinimg.com
 // @connect      *.pinimg.com
 // @run-at       document-idle
-// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest++/main/pinterest++.user.js
-// @updateURL    https://raw.githubusercontent.com/zker67/pinterest++/main/pinterest++.user.js
+// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
+// @updateURL    https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
 // ==/UserScript==
 
 class PinterestPlus {
