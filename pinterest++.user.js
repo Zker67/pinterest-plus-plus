@@ -28,12 +28,14 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.23
+// @version      0.8.24
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
+// @grant        GM_setClipboard
+// @grant        GM.setClipboard
 // @connect      i.pinimg.com
 // @connect      *.pinimg.com
 // @run-at       document-idle
@@ -70,7 +72,7 @@ class PinterestPlus {
 			.ppCompactActionBar {
 				align-items: center;
 				display: inline-flex;
-				gap: 8px;
+				gap: 6px;
 				opacity: 0;
 				pointer-events: auto !important;
 				position: absolute;
@@ -98,12 +100,12 @@ class PinterestPlus {
 				color: #111;
 				cursor: pointer;
 				display: inline-flex;
-				height: 40px;
+				height: 34px;
 				justify-content: center;
 				padding: 0;
 				pointer-events: auto !important;
 				transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
-				width: 40px;
+				width: 34px;
 			}
 
 			.ppIconButton:hover,
@@ -115,8 +117,8 @@ class PinterestPlus {
 
 			.ppIconButton svg {
 				display: block;
-				height: 18px;
-				width: 18px;
+				height: 15px;
+				width: 15px;
 			}
 
 			.ppIconButton[disabled] {
@@ -131,6 +133,11 @@ class PinterestPlus {
 			}
 
 			.ppDownloadButton.ppDone {
+				background: #0a8f3c;
+				color: #fff;
+			}
+
+			.ppCopyButton.ppCopied {
 				background: #0a8f3c;
 				color: #fff;
 			}
@@ -229,6 +236,7 @@ class PinterestPlus {
 			const actionBar = document.createElement("div");
 			actionBar.className = "ppCompactActionBar";
 
+			const copyButton = this._CreateIconButton("ppCopyButton", "复制原图链接", this._CopyIcon());
 			const downloadButton = this._CreateIconButton("ppDownloadButton", "下载原图", this._DownloadIcon());
 			const saveButton = this._CreateIconButton("ppSaveButton", "保存", this._StarIcon());
 
@@ -237,6 +245,13 @@ class PinterestPlus {
 				e.stopPropagation();
 				e.stopImmediatePropagation();
 			};
+
+			copyButton.addEventListener("mousedown", stop, true);
+			copyButton.addEventListener("mouseup", stop, true);
+			copyButton.addEventListener("click", async (e) => {
+				stop(e);
+				await this._CopyFromCard(card, copyButton);
+			}, true);
 
 			downloadButton.addEventListener("mousedown", stop, true);
 			downloadButton.addEventListener("mouseup", stop, true);
@@ -254,6 +269,7 @@ class PinterestPlus {
 
 			this._SyncSaveState(saveHost, saveButton);
 
+			actionBar.appendChild(copyButton);
 			actionBar.appendChild(downloadButton);
 			actionBar.appendChild(saveButton);
 			card.appendChild(actionBar);
@@ -344,6 +360,15 @@ class PinterestPlus {
 		`;
 	}
 
+	_CopyIcon() {
+		return `
+			<svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+				<path d="M9 7h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+				<path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+		`;
+	}
+
 	_StarIcon() {
 		return `
 			<svg aria-hidden="true" viewBox="0 0 24 24">
@@ -394,6 +419,30 @@ class PinterestPlus {
 		catch (error) {
 			console.error("Pinterest Plus download failed:", error);
 			button.classList.remove("ppWorking");
+			button.disabled = false;
+		}
+	}
+
+	async _CopyFromCard(card, button) {
+		try {
+			button.disabled = true;
+
+			const result = await this._ResolveCardOriginal(card);
+			const url = result.urls[0];
+
+			if (url == null) {
+				throw new Error("Cannot resolve original media url.");
+			}
+
+			await this._CopyText(url);
+			button.classList.add("ppCopied");
+			setTimeout(() => {
+				button.classList.remove("ppCopied");
+				button.disabled = false;
+			}, 1000);
+		}
+		catch (error) {
+			console.error("Pinterest Plus copy failed:", error);
 			button.disabled = false;
 		}
 	}
@@ -863,6 +912,25 @@ class PinterestPlus {
 		}
 
 		throw new Error(`Cannot download url: ${url}`);
+	}
+
+	async _CopyText(text) {
+		if (typeof GM_setClipboard === "function") {
+			GM_setClipboard(text, "text");
+			return;
+		}
+
+		if (globalThis.GM != null && typeof GM.setClipboard === "function") {
+			await GM.setClipboard(text, "text");
+			return;
+		}
+
+		if (navigator.clipboard != null && typeof navigator.clipboard.writeText === "function") {
+			await navigator.clipboard.writeText(text);
+			return;
+		}
+
+		throw new Error("Clipboard API is unavailable.");
 	}
 
 	async _DownloadWithGMDownload(url, filename) {
