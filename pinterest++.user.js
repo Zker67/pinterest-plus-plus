@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.25
+// @version      0.8.26
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -127,6 +127,32 @@ class PinterestPlus {
 				transform: none;
 			}
 
+			.ppSaveButton {
+				background: #e60023;
+				border-radius: 24px;
+				box-shadow: none;
+				color: #fff;
+				font-size: 16px;
+				font-weight: 700;
+				min-width: 64px;
+				padding: 0 16px;
+				width: auto;
+			}
+
+			.ppSaveButton:hover,
+			.ppSaveButton:focus-visible,
+			.ppSaveButton.ppSaved:hover,
+			.ppSaveButton.ppSaved:focus-visible {
+				background: #ad081b;
+				box-shadow: none;
+				transform: none;
+			}
+
+			.ppSaveButtonText {
+				line-height: 1;
+				white-space: nowrap;
+			}
+
 			.ppDownloadButton.ppWorking {
 				background: #111;
 				color: #fff;
@@ -145,11 +171,6 @@ class PinterestPlus {
 			.ppSaveButton.ppSaved {
 				background: #e60023;
 				color: #fff;
-			}
-
-			.ppSaveButton.ppSaved:hover,
-			.ppSaveButton.ppSaved:focus-visible {
-				background: #ad081b;
 			}
 
 			.ppDetailDownloadButton {
@@ -238,7 +259,7 @@ class PinterestPlus {
 
 			const copyButton = this._CreateIconButton("ppCopyButton", "复制原图链接", this._CopyIcon());
 			const downloadButton = this._CreateIconButton("ppDownloadButton", "下载原图", this._DownloadIcon());
-			const saveButton = this._CreateIconButton("ppSaveButton", "保存", this._StarIcon());
+			const saveButton = this._CreateSaveButton();
 
 			const stop = (e) => {
 				e.preventDefault();
@@ -350,6 +371,16 @@ class PinterestPlus {
 		return button;
 	}
 
+	_CreateSaveButton() {
+		const button = document.createElement("button");
+		button.type = "button";
+		button.className = "ppIconButton ppSaveButton";
+		button.title = "保存";
+		button.setAttribute("aria-label", "保存");
+		button.innerHTML = "<span class='ppSaveButtonText'>保存</span>";
+		return button;
+	}
+
 	_DownloadIcon() {
 		return `
 			<svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
@@ -365,14 +396,6 @@ class PinterestPlus {
 			<svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
 				<path d="M9 7h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
 				<path d="M5 15H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-			</svg>
-		`;
-	}
-
-	_StarIcon() {
-		return `
-			<svg aria-hidden="true" viewBox="0 0 24 24">
-				<path d="m12 2.8 2.86 5.8 6.4.93-4.63 4.51 1.1 6.37L12 17.4l-5.73 3.01 1.1-6.37-4.63-4.51 6.4-.93L12 2.8Z" fill="currentColor"/>
 			</svg>
 		`;
 	}
@@ -492,13 +515,24 @@ class PinterestPlus {
 			saveButton.classList.remove("ppSaved");
 			saveButton.setAttribute("aria-label", "保存");
 			saveButton.title = "保存";
+			this._SetSaveButtonText(saveButton, "保存");
 			return;
 		}
 
 		const saved = this._IsNativeSaved(quickSave);
+		const label = saved ? "已收藏" : "保存";
 		saveButton.classList.toggle("ppSaved", saved);
-		saveButton.setAttribute("aria-label", saved ? "已收藏" : "保存");
-		saveButton.title = saved ? "已收藏" : "保存";
+		saveButton.setAttribute("aria-label", label);
+		saveButton.title = label;
+		this._SetSaveButtonText(saveButton, label);
+	}
+
+	_SetSaveButtonText(saveButton, text) {
+		const label = saveButton.querySelector(".ppSaveButtonText");
+
+		if (label != null) {
+			label.textContent = text;
+		}
 	}
 
 	_IsNativeSaved(quickSave) {
