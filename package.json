@@ -1,7 +1,7 @@
 {
   "name": "pinterest-plus-plus",
   "private": true,
-  "version": "0.8.27",
+  "version": "0.8.28",
   "description": "Pinterest userscript for original image downloads and compact save-state buttons.",
   "scripts": {
     "check": "node --check \"pinterest++.user.js\""

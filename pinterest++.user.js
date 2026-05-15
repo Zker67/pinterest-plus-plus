@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.27
+// @version      0.8.28
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -457,7 +457,7 @@ class PinterestPlus {
 				throw new Error("Cannot resolve original media url.");
 			}
 
-			await this._CopyMedia(result.urls);
+			await this._CopyText(url);
 			button.classList.add("ppCopied");
 			setTimeout(() => {
 				button.classList.remove("ppCopied");
@@ -967,67 +967,6 @@ class PinterestPlus {
 		throw new Error("Clipboard API is unavailable.");
 	}
 
-	async _CopyMedia(urls) {
-		const imageUrls = urls.filter((url) => this._IsDownloadableImageUrl(url));
-
-		for (const url of imageUrls) {
-			try {
-				const blob = await this._RequestBlob(url);
-				const pngBlob = await this._ToClipboardImageBlob(blob);
-				await this._WriteImageToClipboard(pngBlob);
-				return;
-			}
-			catch (error) {
-				console.warn("Image clipboard copy failed:", url, error);
-			}
-		}
-
-		await this._CopyText(urls[0]);
-	}
-
-	async _ToClipboardImageBlob(blob) {
-		if (blob.type === "image/png") {
-			return blob;
-		}
-
-		const bitmap = await createImageBitmap(blob);
-		const canvas = document.createElement("canvas");
-		canvas.width = bitmap.width;
-		canvas.height = bitmap.height;
-
-		const context = canvas.getContext("2d");
-
-		if (context == null) {
-			throw new Error("Canvas 2D context is unavailable.");
-		}
-
-		context.drawImage(bitmap, 0, 0);
-		bitmap.close?.();
-
-		return await new Promise((resolve, reject) => {
-			canvas.toBlob((pngBlob) => {
-				if (pngBlob == null) {
-					reject(new Error("Cannot convert image to PNG."));
-					return;
-				}
-
-				resolve(pngBlob);
-			}, "image/png");
-		});
-	}
-
-	async _WriteImageToClipboard(blob) {
-		if (typeof ClipboardItem !== "function" || navigator.clipboard == null || typeof navigator.clipboard.write !== "function") {
-			throw new Error("Image clipboard API is unavailable.");
-		}
-
-		await navigator.clipboard.write([
-			new ClipboardItem({
-				[blob.type || "image/png"]: blob,
-			}),
-		]);
-	}
-
 	async _DownloadWithGMDownload(url, filename) {
 		if (typeof GM_download === "function") {
 			await this._WithTimeout(new Promise((resolve, reject) => {
@@ -1179,14 +1118,6 @@ class PinterestPlus {
 
 	_LooksLikeVideoUrl(url) {
 		return this._IsDownloadableVideoUrl(url);
-	}
-
-	_IsDownloadableImageUrl(url) {
-		if (url == null) {
-			return false;
-		}
-
-		return /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(url);
 	}
 
 	_IsDownloadableVideoUrl(url) {
