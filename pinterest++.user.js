@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.24
+// @version      0.8.25
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -72,7 +72,7 @@ class PinterestPlus {
 			.ppCompactActionBar {
 				align-items: center;
 				display: inline-flex;
-				gap: 6px;
+				gap: 8px;
 				opacity: 0;
 				pointer-events: auto !important;
 				position: absolute;
@@ -92,33 +92,33 @@ class PinterestPlus {
 			.ppIconButton {
 				align-items: center;
 				backdrop-filter: blur(10px);
-				background: rgba(255, 255, 255, 0.96);
+				background: #fff;
 				border: 0;
 				border-radius: 999px;
-				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+				box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
 				box-sizing: border-box;
 				color: #111;
 				cursor: pointer;
 				display: inline-flex;
-				height: 34px;
+				height: 40px;
 				justify-content: center;
 				padding: 0;
 				pointer-events: auto !important;
 				transition: background-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
-				width: 34px;
+				width: 40px;
 			}
 
 			.ppIconButton:hover,
 			.ppIconButton:focus-visible {
-				background: #fff;
-				box-shadow: 0 3px 12px rgba(0, 0, 0, 0.24);
+				background: #f1f1f1;
+				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
 				transform: scale(1.04);
 			}
 
 			.ppIconButton svg {
 				display: block;
-				height: 15px;
-				width: 15px;
+				height: 12px;
+				width: 12px;
 			}
 
 			.ppIconButton[disabled] {
