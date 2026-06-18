@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.29
+// @version      0.8.30
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -992,19 +992,19 @@ class PinterestPlus {
 
 	async _DownloadUrlNoOpenFallback(url, filename) {
 		try {
-			await this._DownloadWithGMDownload(url, filename);
-			return;
-		}
-		catch (error) {
-			console.warn("GM_download failed or timed out, trying blob fallback:", error);
-		}
-
-		try {
 			await this._DownloadWithGMRequest(url, filename);
 			return;
 		}
 		catch (error) {
-			console.warn("GM_xmlhttpRequest fallback failed:", error);
+			console.warn("GM_xmlhttpRequest download failed, trying GM_download fallback:", error);
+		}
+
+		try {
+			await this._DownloadWithGMDownload(url, filename);
+			return;
+		}
+		catch (error) {
+			console.warn("GM_download fallback failed or timed out:", error);
 		}
 
 		throw new Error(`Cannot download url: ${url}`);
