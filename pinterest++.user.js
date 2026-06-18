@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.28
+// @version      0.8.29
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -431,7 +431,7 @@ class PinterestPlus {
 				throw new Error("Cannot resolve original image url.");
 			}
 
-			await this._DownloadFirstAvailable(result.urls, result.filename);
+			await this._DownloadFirstAvailable(result.urls, result.filenameBase);
 			button.classList.add("ppDone");
 			setTimeout(() => {
 				button.classList.remove("ppDone");
@@ -480,7 +480,7 @@ class PinterestPlus {
 				throw new Error("Cannot resolve detail original image url.");
 			}
 
-			await this._DownloadFirstAvailable(result.urls, result.filename);
+			await this._DownloadFirstAvailable(result.urls, result.filenameBase);
 			button.classList.add("ppDone");
 			setTimeout(() => {
 				button.classList.remove("ppDone");
@@ -552,9 +552,10 @@ class PinterestPlus {
 		}
 
 		const urls = [];
+		let pin = null;
 
 		if (pinId != null) {
-			const pin = await this._FetchPinData(pinId);
+			pin = await this._FetchPinData(pinId);
 			urls.push(...(pin == null ? [] : this._ExtractPinUrls(pin)));
 		}
 
@@ -569,10 +570,13 @@ class PinterestPlus {
 		}
 
 		const uniqueUrls = this._UniqueUrls(urls);
+		const title = this._ExtractPinTitle(pin) || this._ExtractCardTitle(card);
+		const filenameBase = this._BuildDownloadBaseName(pinId, title);
 		const result = {
 			url: uniqueUrls[0] || null,
 			urls: uniqueUrls,
-			filename: this._BuildDownloadName(uniqueUrls[0] || null, pinId),
+			filenameBase,
+			filename: this._BuildDownloadName(uniqueUrls[0] || null, filenameBase),
 		};
 
 		if (uniqueUrls.length > 0) {
@@ -591,9 +595,10 @@ class PinterestPlus {
 		}
 
 		const urls = [];
+		let pin = null;
 
 		if (pinId != null) {
-			const pin = await this._FetchPinData(pinId);
+			pin = await this._FetchPinData(pinId);
 			urls.push(...(pin == null ? [] : this._ExtractPinUrls(pin)));
 		}
 
@@ -621,10 +626,13 @@ class PinterestPlus {
 		}
 
 		const uniqueUrls = this._UniqueUrls(urls);
+		const title = this._ExtractPinTitle(pin) || this._ExtractDetailTitle(document);
+		const filenameBase = this._BuildDownloadBaseName(pinId, title);
 		const result = {
 			url: uniqueUrls[0] || null,
 			urls: uniqueUrls,
-			filename: this._BuildDownloadName(uniqueUrls[0] || null, pinId),
+			filenameBase,
+			filename: this._BuildDownloadName(uniqueUrls[0] || null, filenameBase),
 		};
 
 		if (uniqueUrls.length > 0) {
@@ -750,6 +758,60 @@ class PinterestPlus {
 
 		const match = /\/pin\/([\w-]+)\/?/.exec(text) || /\/(\d+)\/?/.exec(text);
 		return match == null ? null : match[1];
+	}
+
+	_ExtractPinTitle(pin) {
+		return this._FirstTitle([
+			pin?.title,
+			pin?.grid_title,
+			pin?.seo_title,
+			pin?.story_pin_data?.title,
+			pin?.rich_metadata?.title,
+			pin?.rich_summary?.title,
+		]);
+	}
+
+	_ExtractCardTitle(card) {
+		return this._FirstTitle([
+			card.querySelector("[data-test-id='pinTitle']")?.textContent,
+			card.querySelector("a[href*='/pin/']")?.getAttribute("aria-label"),
+			card.querySelector("img[alt]")?.getAttribute("alt"),
+			card.querySelector("img[title]")?.getAttribute("title"),
+		]);
+	}
+
+	_ExtractDetailTitle(root) {
+		return this._FirstTitle([
+			root.querySelector("[data-test-id='pinTitle']")?.textContent,
+			root.querySelector("h1")?.textContent,
+			root.querySelector("meta[property='og:title']")?.getAttribute("content"),
+			root.title,
+		]);
+	}
+
+	_FirstTitle(values) {
+		for (const value of values) {
+			const title = this._NormalizePinTitle(value);
+
+			if (title !== "") {
+				return title;
+			}
+		}
+
+		return "";
+	}
+
+	_NormalizePinTitle(value) {
+		if (typeof value !== "string") {
+			return "";
+		}
+
+		const title = value
+			.replace(/\s+/g, " ")
+			.replace(/\s*(?:\||-)\s*Pinterest.*$/i, "")
+			.trim();
+
+		return /^pinterest$/i.test(title) ? "" : title;
 	}
 
 	async _FetchPinData(id) {
@@ -911,12 +973,12 @@ class PinterestPlus {
 		]);
 	}
 
-	async _DownloadFirstAvailable(urls, filename) {
+	async _DownloadFirstAvailable(urls, filenameBase) {
 		const errors = [];
 
 		for (const url of urls) {
 			try {
-				await this._DownloadUrlNoOpenFallback(url, this._BuildDownloadName(url, null) || filename);
+				await this._DownloadUrlNoOpenFallback(url, this._BuildDownloadName(url, filenameBase));
 				return;
 			}
 			catch (error) {
@@ -1096,24 +1158,56 @@ class PinterestPlus {
 		return result;
 	}
 
-	_BuildDownloadName(url, pinId) {
-		let fileName = "pinterest-original";
+	_BuildDownloadBaseName(pinId, title) {
+		const titleName = this._SanitizeFileName(title);
+
+		if (titleName !== "") {
+			return titleName;
+		}
+
+		const idName = this._SanitizeFileName(pinId);
+		return idName === "" ? "pinterest-original" : `pinterest-${idName}`;
+	}
+
+	_BuildDownloadName(url, filenameBase) {
+		const baseName = this._SanitizeFileName(filenameBase) || "pinterest-original";
+		return `${baseName}${this._GetDownloadExtension(url)}`;
+	}
+
+	_GetDownloadExtension(url) {
+		const fallback = this._LooksLikeVideoUrl(url) ? ".mp4" : ".jpg";
 
 		try {
 			if (url != null) {
 				const parsed = new URL(url, location.href);
-				fileName = decodeURIComponent(parsed.pathname.split("/").pop() || fileName);
+				const fileName = decodeURIComponent(parsed.pathname.split("/").pop() || "");
+				const match = /\.[a-z0-9]{2,5}$/i.exec(fileName);
+				return match == null ? fallback : match[0].toLowerCase();
 			}
 		}
 		catch {
-			fileName = "pinterest-original";
+			return fallback;
 		}
 
-		if (!/\.[a-z0-9]{2,5}$/i.test(fileName)) {
-			fileName += this._LooksLikeVideoUrl(url) ? ".mp4" : ".jpg";
+		return fallback;
+	}
+
+	_SanitizeFileName(value) {
+		if (typeof value !== "string") {
+			return "";
 		}
 
-		return pinId == null ? fileName : `pinterest-${pinId}-${fileName}`;
+		let fileName = value
+			.replace(/[\u0000-\u001f\u007f<>:"/\\|?*]+/g, " ")
+			.replace(/\s+/g, " ")
+			.replace(/[. ]+$/g, "")
+			.trim();
+
+		if (fileName.length > 120) {
+			fileName = fileName.slice(0, 120).replace(/[. ]+$/g, "").trim();
+		}
+
+		return /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(fileName) ? `${fileName}-pin` : fileName;
 	}
 
 	_LooksLikeVideoUrl(url) {
