@@ -2,7 +2,7 @@
 // @name         Pinterest++
 // @name:en      Pinterest++
 // @name:zh-CN   Pinterest++
-// @namespace    https://github.com/zker67/pinterest-plus-plus
+// @namespace    https://github.com/Zker67/pinterest-plus-plus
 // @description  为 Pinterest 增加原图下载与保存状态按钮。
 // @description:zh-CN 为 Pinterest 增加原图下载与保存状态按钮。
 // @description:en Add compact buttons for original image download and save state.
@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.30
+// @version      0.8.31
 // @license      MIT
 // @grant        GM_download
 // @grant        GM.download
@@ -39,8 +39,8 @@
 // @connect      i.pinimg.com
 // @connect      *.pinimg.com
 // @run-at       document-idle
-// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
-// @updateURL    https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
+// @downloadURL  https://raw.githubusercontent.com/Zker67/pinterest-plus-plus/main/pinterest++.user.js
+// @updateURL    https://raw.githubusercontent.com/Zker67/pinterest-plus-plus/main/pinterest++.user.js
 // ==/UserScript==
 
 class PinterestPlus {

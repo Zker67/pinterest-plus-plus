@@ -16,13 +16,13 @@ node --check ".\pinterest++.user.js"
 // @name         Pinterest++
 // @name:en      Pinterest++
 // @name:zh-CN   Pinterest++
-// @namespace    https://github.com/zker67/pinterest-plus-plus
+// @namespace    https://github.com/Zker67/pinterest-plus-plus
 // @description  为 Pinterest 增加原图下载与保存状态按钮。
 // @description:zh-CN 为 Pinterest 增加原图下载与保存状态按钮。
 // @description:en Add compact buttons for original image download and save state.
-// @version      0.8.30
-// @downloadURL  https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
-// @updateURL    https://raw.githubusercontent.com/zker67/pinterest-plus-plus/main/pinterest++.user.js
+// @version      0.8.31
+// @downloadURL  https://raw.githubusercontent.com/Zker67/pinterest-plus-plus/main/pinterest++.user.js
+// @updateURL    https://raw.githubusercontent.com/Zker67/pinterest-plus-plus/main/pinterest++.user.js
 ```
 
 3. 如果你在 GitHub 改了版本号，Greasy Fork 也需要同步更新脚本内容。
