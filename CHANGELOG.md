@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.32
+
+- 过滤 `收藏到 ...` / `Save to ...` 等 Pinterest 保存按钮文案，避免误用为下载标题。
+- 无可信标题时固定使用 `pinterest-{pinId}` 作为文件名基础。
+- 移除 `GM_download` 下载路径，避免脚本管理器忽略自定义文件名后保存成 CDN UUID。
+
 ## 0.8.31
 
 - 将安装和更新地址统一为 GitHub 仓库实际 owner 大小写，避开旧 Raw 缓存路径。

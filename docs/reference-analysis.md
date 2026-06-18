@@ -98,7 +98,7 @@ Pinterest++ 对应实现：
 1. 主页悬停下载不调用 `window.open`。
 2. 主页和详情页都调用 `_DownloadFirstAvailable`。
 3. `PinResource` 候选排在 DOM 猜测 URL 前面。
-4. `GM_download` 失败后会尝试 request/blob fallback。
+4. 下载必须走 request/blob 链路，避免脚本管理器忽略自定义文件名。
 5. 所有候选都失败时只报错，不打开 AccessDenied 页面。
 6. 视频候选里没有 poster、cover、thumbnail。
 

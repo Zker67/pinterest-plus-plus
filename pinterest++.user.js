@@ -28,10 +28,8 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.31
+// @version      0.8.32
 // @license      MIT
-// @grant        GM_download
-// @grant        GM.download
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
 // @grant        GM_setClipboard
@@ -774,7 +772,6 @@ class PinterestPlus {
 	_ExtractCardTitle(card) {
 		return this._FirstTitle([
 			card.querySelector("[data-test-id='pinTitle']")?.textContent,
-			card.querySelector("a[href*='/pin/']")?.getAttribute("aria-label"),
 			card.querySelector("img[alt]")?.getAttribute("alt"),
 			card.querySelector("img[title]")?.getAttribute("title"),
 		]);
@@ -811,7 +808,18 @@ class PinterestPlus {
 			.replace(/\s*(?:\||-)\s*Pinterest.*$/i, "")
 			.trim();
 
-		return /^pinterest$/i.test(title) ? "" : title;
+		if (/^pinterest$/i.test(title) || this._IsPinterestActionText(title)) {
+			return "";
+		}
+
+		return title;
+	}
+
+	_IsPinterestActionText(text) {
+		return /^(收藏到|保存到)\s+/i.test(text)
+			|| /^(保存|已收藏)$/i.test(text)
+			|| /^(save|saved)$/i.test(text)
+			|| /^(save|saved)\s+to\s+/i.test(text);
 	}
 
 	async _FetchPinData(id) {
@@ -996,15 +1004,7 @@ class PinterestPlus {
 			return;
 		}
 		catch (error) {
-			console.warn("GM_xmlhttpRequest download failed, trying GM_download fallback:", error);
-		}
-
-		try {
-			await this._DownloadWithGMDownload(url, filename);
-			return;
-		}
-		catch (error) {
-			console.warn("GM_download fallback failed or timed out:", error);
+			console.warn("Blob download failed:", error);
 		}
 
 		throw new Error(`Cannot download url: ${url}`);
@@ -1029,34 +1029,6 @@ class PinterestPlus {
 		throw new Error("Clipboard API is unavailable.");
 	}
 
-	async _DownloadWithGMDownload(url, filename) {
-		if (typeof GM_download === "function") {
-			await this._WithTimeout(new Promise((resolve, reject) => {
-				GM_download({
-					url,
-					name: filename,
-					saveAs: false,
-					timeout: 30000,
-					onload: resolve,
-					onerror: reject,
-					ontimeout: reject,
-				});
-			}), 25000, "GM_download timeout");
-			return;
-		}
-
-		if (globalThis.GM != null && typeof GM.download === "function") {
-			await this._WithTimeout(GM.download({
-				url,
-				name: filename,
-				saveAs: false,
-			}), 25000, "GM.download timeout");
-			return;
-		}
-
-		throw new Error("GM_download is unavailable.");
-	}
-
 	async _DownloadWithGMRequest(url, filename) {
 		const blob = await this._RequestBlob(url);
 		const objectUrl = URL.createObjectURL(blob);
@@ -1070,49 +1042,68 @@ class PinterestPlus {
 	}
 
 	async _RequestBlob(url) {
+		const errors = [];
+
 		if (typeof GM_xmlhttpRequest === "function") {
-			return await this._WithTimeout(new Promise((resolve, reject) => {
-				GM_xmlhttpRequest({
+			try {
+				return await this._WithTimeout(new Promise((resolve, reject) => {
+					GM_xmlhttpRequest({
+						method: "GET",
+						url,
+						responseType: "blob",
+						timeout: 30000,
+						onload: (res) => {
+							if (res.status >= 200 && res.status < 300 && res.response instanceof Blob) {
+								resolve(res.response);
+							}
+							else {
+								reject(new Error(`GM_xmlhttpRequest failed: ${res.status}`));
+							}
+						},
+						onerror: reject,
+						ontimeout: reject,
+					});
+				}), 35000, "GM_xmlhttpRequest timeout");
+			}
+			catch (error) {
+				errors.push(error);
+			}
+		}
+
+		if (globalThis.GM != null && typeof GM.xmlHttpRequest === "function") {
+			try {
+				const res = await this._WithTimeout(GM.xmlHttpRequest({
 					method: "GET",
 					url,
 					responseType: "blob",
 					timeout: 30000,
-					onload: (res) => {
-						if (res.status >= 200 && res.status < 300 && res.response instanceof Blob) {
-							resolve(res.response);
-						}
-						else {
-							reject(new Error(`GM_xmlhttpRequest failed: ${res.status}`));
-						}
-					},
-					onerror: reject,
-					ontimeout: reject,
-				});
-			}), 35000, "GM_xmlhttpRequest timeout");
+				}), 35000, "GM.xmlHttpRequest timeout");
+
+				if (res.status >= 200 && res.status < 300 && res.response instanceof Blob) {
+					return res.response;
+				}
+
+				throw new Error(`GM.xmlHttpRequest failed: ${res.status}`);
+			}
+			catch (error) {
+				errors.push(error);
+			}
 		}
 
-		if (globalThis.GM != null && typeof GM.xmlHttpRequest === "function") {
-			const res = await this._WithTimeout(GM.xmlHttpRequest({
-				method: "GET",
-				url,
-				responseType: "blob",
-				timeout: 30000,
-			}), 35000, "GM.xmlHttpRequest timeout");
+		try {
+			const res = await this._WithTimeout(fetch(url, { credentials: "omit" }), 30000, "fetch timeout");
 
-			if (res.status >= 200 && res.status < 300 && res.response instanceof Blob) {
-				return res.response;
+			if (!res.ok) {
+				throw new Error(`fetch failed: ${res.status}`);
 			}
 
-			throw new Error(`GM.xmlHttpRequest failed: ${res.status}`);
+			return await res.blob();
+		}
+		catch (error) {
+			errors.push(error);
 		}
 
-		const res = await this._WithTimeout(fetch(url, { credentials: "omit" }), 30000, "fetch timeout");
-
-		if (!res.ok) {
-			throw new Error(`fetch failed: ${res.status}`);
-		}
-
-		return await res.blob();
+		throw errors[0] || new Error("Blob request is unavailable.");
 	}
 
 	_WithTimeout(promise, ms, message) {
@@ -1159,7 +1150,7 @@ class PinterestPlus {
 	}
 
 	_BuildDownloadBaseName(pinId, title) {
-		const titleName = this._SanitizeFileName(title);
+		const titleName = this._SanitizeFileName(this._NormalizePinTitle(title));
 
 		if (titleName !== "") {
 			return titleName;
