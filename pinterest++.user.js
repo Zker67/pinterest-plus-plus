@@ -28,7 +28,7 @@
 // @match        https://*.pinterest.pt/*
 // @match        https://*.pinterest.se/*
 // @author       zker67, TiLied
-// @version      0.8.32
+// @version      0.8.33
 // @license      MIT
 // @grant        GM_xmlhttpRequest
 // @grant        GM.xmlHttpRequest
@@ -808,18 +808,22 @@ class PinterestPlus {
 			.replace(/\s*(?:\||-)\s*Pinterest.*$/i, "")
 			.trim();
 
-		if (/^pinterest$/i.test(title) || this._IsPinterestActionText(title)) {
+		if (/^pinterest$/i.test(title) || this._IsPinterestNonTitleText(title)) {
 			return "";
 		}
 
 		return title;
 	}
 
-	_IsPinterestActionText(text) {
+	_IsPinterestNonTitleText(text) {
 		return /^(收藏到|保存到)\s+/i.test(text)
 			|| /^(保存|已收藏)$/i.test(text)
 			|| /^(save|saved)$/i.test(text)
-			|| /^(save|saved)\s+to\s+/i.test(text);
+			|| /^(save|saved)\s+to\s+/i.test(text)
+			|| /^其中包括图片\s*[:：]?/i.test(text)
+			|| /^图片(?:中)?(?:可能)?包括\s*[:：]?/i.test(text)
+			|| /^image may contain\s*[:：]?/i.test(text)
+			|| /^may be an image of\s+/i.test(text);
 	}
 
 	async _FetchPinData(id) {
